@@ -111,17 +111,22 @@ def whitespace_tokenize(text):
 class FullTokenizer(object):
     """Runs end-to-end tokenziation."""
 
-    def __init__(self, vocab_file, do_lower_case=True):
+    def __init__(self, vocab_file, sp_model_file, do_lower_case=True):
         self.vocab = load_vocab(vocab_file)
         self.inv_vocab = {v: k for k, v in self.vocab.items()}
         self.basic_tokenizer = BasicTokenizer(do_lower_case=do_lower_case)
         self.wordpiece_tokenizer = WordpieceTokenizer(vocab=self.vocab)
+        self.sp_tokenizer = SentencePieceTokenizer(sp_model_file, do_lower_case) if sp_model_file is not None else None
 
     def tokenize(self, text):
         split_tokens = []
-        for token in self.basic_tokenizer.tokenize(text):
-            for sub_token in self.wordpiece_tokenizer.tokenize(token):
-                split_tokens.append(sub_token)
+        if self.sp_tokenizer is None:
+            for token in self.basic_tokenizer.tokenize(text):
+                for sub_token in self.wordpiece_tokenizer.tokenize(token):
+                    split_tokens.append(sub_token)
+        else:
+            for token in self.sp_tokenizer.tokenize(text):
+                split_tokens.append(token)
 
         return split_tokens
 
@@ -248,6 +253,31 @@ class BasicTokenizer(object):
             else:
                 output.append(char)
         return "".join(output)
+
+
+class SentencePieceTokenizer(object):
+    """Runs SentencePiece tokenization."""
+    def __init__(self, sp_model, do_lower_case):
+        import sentencepiece
+        self.sp = sentencepiece.SentencePieceProcessor()
+        self.sp.Load(sp_model)
+        self.do_lower_case = do_lower_case
+
+    def tokenize(self, text):
+        """Tokenizes a piece of text into its sentence piece.
+
+        For example:
+            input: "今日は晴れです"
+            output: ["▁", "今日", "は", "晴れ", "です"]
+
+        Args:
+            text: A sentence.
+        Returns:
+            A list of sentencepieec tokens.
+        """
+        text_ = text.lower() if self.do_lower_case else text
+        return self.sp.EncodeAsPieces(text_)
+
 
 
 class WordpieceTokenizer(object):

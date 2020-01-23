@@ -48,6 +48,7 @@ class BertServer(threading.Thread):
         self.logger = set_logger(colored('VENTILATOR', 'magenta'), args.verbose)
 
         self.model_dir = args.model_dir
+        self.sp_model = args.sp_model
         self.max_seq_len = args.max_seq_len
         self.num_worker = args.num_worker
         self.max_batch_size = args.max_batch_size
@@ -469,6 +470,7 @@ class BertWorker(Process):
         self.prefetch_size = args.prefetch_size if self.device_id > 0 else None  # set to zero for CPU-worker
         self.gpu_memory_fraction = args.gpu_memory_fraction
         self.model_dir = args.model_dir
+        self.sp_model = args.sp_model
         self.verbose = args.verbose
         self.graph_path = graph_path
         self.bert_config = graph_config
@@ -550,7 +552,10 @@ class BertWorker(Process):
             # Windows does not support logger in MP environment, thus get a new logger
             # inside the process for better compatibility
             logger = set_logger(colored('WORKER-%d' % self.worker_id, 'yellow'), self.verbose)
-            tokenizer = FullTokenizer(vocab_file=os.path.join(self.model_dir, 'vocab.txt'), do_lower_case=self.do_lower_case)
+            tokenizer = FullTokenizer(
+                vocab_file=os.path.join(self.model_dir, 'vocab.txt'),
+                sp_model_file=self.sp_model,
+                do_lower_case=self.do_lower_case)
 
             poller = zmq.Poller()
             for sock in socks:

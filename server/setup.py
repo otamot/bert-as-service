@@ -25,12 +25,13 @@ setup(
         'six',
         'pyzmq>=17.1.0',
         'GPUtil>=1.3.0',
-        'termcolor>=1.1'
+        'termcolor>=1.1',
+        'sentencepiece'
     ],
     extras_require={
-        'cpu': ['tensorflow>=1.10.0'],
-        'gpu': ['tensorflow-gpu>=1.10.0'],
-        'http': ['flask', 'flask-compress', 'flask-cors', 'flask-json', 'bert-serving-client']
+        'cpu': ['tensorflow==1.13.1'],
+        'gpu': ['tensorflow-gpu==1.13.1'],
+        'http': ['flask', 'flask-compress', 'flask-cors', 'flask-json', 'bert-serving-client'],
     },
     classifiers=(
         'Programming Language :: Python :: 3.6',
